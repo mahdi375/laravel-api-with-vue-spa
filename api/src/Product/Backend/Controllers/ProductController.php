@@ -14,26 +14,10 @@ class ProductController extends Controller
         $filters = request()->only(['name', 'colors', 'min_price', 'max_price']);
 
         $products = Product::query()
+            ->search($filters)
             ->filter($filters)
             ->with([
-                'prices' => function($q) use ($filters) {
-                    $q->when(
-                        $filters['min_price'] ?? false,
-                        fn($q, $min_price) => $q->where('prices.price', '>=', $min_price)
-                    );
-
-                    $q->when(
-                        $filters['max_price'] ?? false,
-                        fn($q, $max_price) => $q->where('prices.price', '<=', $max_price)
-                    ); 
-
-                    $q->whereHas('color', function ($q) use ($filters) {
-                        $q->when(
-                            $filters['colors'] ?? false,
-                            fn($q, $colors) => $q->whereIn('name', explode(',', $colors))
-                        );
-                    });
-                }, 
+                'prices' => fn($q) => $q->price($filters)->color($filters),
                 'prices.color'
             ])
             ->paginate()
