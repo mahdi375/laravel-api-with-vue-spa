@@ -17,13 +17,4 @@ class Product extends Model
         return new ProductFactory();
     }
 
-    public function colors()
-    {
-        return $this->belongsToMany(Color::class, 'prices');
-    }
-
-    public function prices()
-    {
-        return $this->hasMany(Price::class);
-    }
 }
