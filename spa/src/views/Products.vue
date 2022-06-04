@@ -5,8 +5,13 @@
       <ProductFilters :colors="colors" @filter="filter" />
     </div>
   
-    <div class="basis-3/4 lg:basis-5/6 px-5 flex flex-row justify-center flex-wrap mt-10 pb-10">
-      <ProductCard v-for="product in products" :product="product" :key="product.id"/>
+    <div class="basis-3/4 lg:basis-5/6 px-5 ">
+      <div class="flex flex-row justify-center flex-wrap mt-10 pb-10">
+        <ProductCard v-for="product in products.data" :product="product" :key="product.id"/>
+      </div>
+      <div class="mb-10">
+        <Pagination :data="products" class="flex flex-row space-x-4 justify-center" @pagination-change-page="changePage" />
+      </div>
     </div>
   </div>
 </template>
@@ -15,18 +20,24 @@
 import axios from 'axios';
 import ProductCard from '@/components/ProductCard.vue'
 import ProductFilters from '@/components/ProductFilters.vue'
+import Pagination from 'laravel-vue-pagination'
 
 export default {
   name: 'Products',
   data() {
     return {
-      products: [],
-      colors: []
+      products: {
+        data: []
+      },
+      colors: [],
+      filterQuery: '?',
+      page: 1,
     }
   },
   components: {
     ProductCard,
-    ProductFilters
+    ProductFilters,
+    Pagination
   },
   mounted() {
     this.getColorsData();
@@ -34,14 +45,22 @@ export default {
   },
   methods: {
     filter(query){
-      this.getPoductsData(query);
+      this.filterQuery = query;
+      this.page = 1;
+      this.getPoductsData();
     },
 
-    getPoductsData(query = '') {
+    changePage(page = 1) {
+      this.page = page;
+      this.getPoductsData();
+    },
+
+    getPoductsData() {
       // we may extract http request to a service ....
-      const url = process.env.VUE_APP_API_URL+'/products';
-      axios.get(url+query).then(resp => {
-        this.products = resp.data.data
+      const url = process.env.VUE_APP_API_URL+'/products'
+      let fullUrl = `${url}${this.filterQuery}page=${this.page}`
+      axios.get(fullUrl).then(resp => {
+        this.products = resp.data
       })
     },
 
